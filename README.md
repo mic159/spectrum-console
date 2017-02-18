@@ -8,6 +8,7 @@ that runs on the console.
 ## Installation
 
 ```bash
+sudo apt install portaudio19-dev
 pip install spectrum-console
 spectrum-console
 ```
