@@ -13,7 +13,7 @@ pip install spectrum-console
 spectrum-console
 ```
 
-You must make your console at least 205 characters wide.
+You must make your console at least 98 characters wide.
 
 ## Using the loopback/mirror sound input
 

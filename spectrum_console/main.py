@@ -5,10 +5,11 @@ import pyaudio
 from numpy.fft import rfft
 from numpy import int16, empty, fromstring, roll
 
-FFT_LEN = 1024 # size of rolling buffer for FFT
-CHUNK = 128 # Size of each 'frame' in rolling buffer
-SIGNAL_SCALE = 0.0000003 # Scaling factor for output
+CHUNK = 32 # Size of each 'frame' in rolling buffer
+FFT_LEN = CHUNK*8 # size of rolling buffer for FFT
+SIGNAL_SCALE = 0.000005 # Scaling factor for output
 RATE = 16000 # Sampling rate
+HEIGHT = 4
 
 
 SPARKS = [
@@ -25,11 +26,10 @@ SPARKS = [
 SPARKS_LEN = len(SPARKS)
 
 
-def spark(i):
-    i = int(i * SPARKS_LEN)
-    if i >= SPARKS_LEN:
-        # Go red when it's above max height
-        return '\033[0;31m' + SPARKS[-1] + '\033[0m'
+def spark(i, full):
+    i = min(int(max(0.0, i) * SPARKS_LEN), SPARKS_LEN-1)
+    if full > 3.0:
+        return '\033[0;31m' + SPARKS[i] + '\033[0m'
     return SPARKS[i]
 
 
@@ -53,13 +53,17 @@ def run():
             signal[-CHUNK:] = fromstring(stream.read(CHUNK), dtype=int16)
 
             # Now transform!
-            fftspec = rfft(signal)
+            fftspec = list(abs(x * SIGNAL_SCALE) for x in rfft(signal)[:CHUNK*3])
 
             # Print it
-            bars = u''.join(spark(abs(x * SIGNAL_SCALE)) for x in fftspec[1 : int(FFT_LEN / 5)])
-            sys.stdout.write('\r' + bars)
+            lines = [
+                ''.join(spark(x - i+1, x) for x in fftspec)
+                for i in range(HEIGHT, 0, -1)
+            ]
+            sys.stdout.write('│' + '│\n│'.join(lines) + '│')
+            sys.stdout.write('\033[3A\r')
     except KeyboardInterrupt:
-        sys.stdout.write('\n')
+        sys.stdout.write('\n' * HEIGHT)
     finally:
         # Turn the cursor back on
         sys.stdout.write('\033[?25h')
