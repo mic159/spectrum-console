@@ -7,13 +7,24 @@ that runs on the console.
 
 ## Installation
 
+#### Ubuntu
+
 ```bash
 sudo apt install portaudio19-dev
 pip install spectrum-console
 spectrum-console
 ```
 
+#### MacOS
+
+```bash
+brew install portaudio
+pip install spectrum-console
+spectrum-console
+```
+
 You must make your console at least 98 characters wide.
+
 
 ## Using the loopback/mirror sound input
 
