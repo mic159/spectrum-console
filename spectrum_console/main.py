@@ -49,8 +49,14 @@ def run():
         sys.stdout.write('\033[?25l')
         while 1:
             # Roll in new frame into buffer
+            try:
+                frame = stream.read(CHUNK)
+            except IOError as e:
+                if e[1] != pyaudio.paInputOverflowed:
+                    raise
+                continue
             signal = roll(signal, -CHUNK)
-            signal[-CHUNK:] = fromstring(stream.read(CHUNK), dtype=int16)
+            signal[-CHUNK:] = fromstring(frame, dtype=int16)
 
             # Now transform!
             fftspec = list(abs(x * SIGNAL_SCALE) for x in rfft(signal)[:CHUNK*3])
