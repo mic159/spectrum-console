@@ -2,13 +2,14 @@
 from __future__ import unicode_literals
 import sys
 import pyaudio
+from math import log
 from numpy.fft import rfft
 from numpy import int16, empty, fromstring, roll
 
 CHUNK = 32 # Size of each 'frame' in rolling buffer
-FFT_LEN = CHUNK*8 # size of rolling buffer for FFT
+FFT_LEN = CHUNK*20 # size of rolling buffer for FFT
 SIGNAL_SCALE = 0.000005 # Scaling factor for output
-RATE = 16000 # Sampling rate
+RATE = 8000 # Sampling rate
 HEIGHT = 4
 
 
@@ -28,7 +29,7 @@ SPARKS_LEN = len(SPARKS)
 
 def spark(i, full):
     i = min(int(max(0.0, i) * SPARKS_LEN), SPARKS_LEN-1)
-    if full > 3.0:
+    if full > HEIGHT:
         return '\033[0;31m' + SPARKS[i] + '\033[0m'
     return SPARKS[i]
 
@@ -59,7 +60,10 @@ def run():
             signal[-CHUNK:] = fromstring(frame, dtype=int16)
 
             # Now transform!
-            fftspec = list(abs(x * SIGNAL_SCALE) for x in rfft(signal)[:CHUNK*3])
+            try:
+                fftspec = list(log(abs(x) * SIGNAL_SCALE) + 1.5 for x in rfft(signal)[:CHUNK*3])
+            except ValueError:
+                fftspec = [0] * CHUNK * 3
 
             # Print it
             lines = [
